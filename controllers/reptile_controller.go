@@ -5,8 +5,8 @@ import (
 	"go_cms_reptile/tools"
 )
 
-// Index 首页目录
-func Index(c *gin.Context) {
+// SearchName 首页目录
+func SearchName(c *gin.Context) {
 	//url 传值
 	searchName := c.DefaultQuery("searchName", "")
 
