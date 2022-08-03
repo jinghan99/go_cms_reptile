@@ -1,19 +1,16 @@
 package main
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	_ "go_cms_reptile/base" // 导入缓存使用
 	"go_cms_reptile/routers"
-	"go_cms_reptile/tools"
 	"io"
 	"os"
 )
 
 //启动获取资源数据
 func main() {
-
-	nameSilo()
+	ginServer()
 }
 
 //开启 ginserver
@@ -41,19 +38,4 @@ func ginServer() {
 	if err != nil {
 		return
 	}
-}
-
-func nameSilo() {
-	domain := "fengyueqing.top"
-	apikey := "26c28d52a431307d50bd9"
-	records, err := tools.DnsListRecords(domain, apikey)
-	if err != nil {
-		fmt.Println("nameSilo failed, err:", err)
-		return
-	}
-
-	fmt.Println("nameSilo records success ", records)
-
-	ip, _ := tools.MyIp()
-	fmt.Println("MyIp success ", ip.IP)
 }

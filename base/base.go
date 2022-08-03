@@ -2,7 +2,10 @@
 package base
 
 import (
+	"fmt"
 	"github.com/patrickmn/go-cache"
+	"log"
+	"os"
 	"time"
 ) // 使用前先import包
 
@@ -19,6 +22,17 @@ func init() {
 
 	// 设置没有过期时间的KEY，这个KEY不会被自动清除，想清除使用：c.Delete("baz")
 	Cache.Set("lastVideo", "雪中悍刀行", cache.NoExpiration)
+
+	logFile, err := os.OpenFile("./go_cms_reptile.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	if err != nil {
+		fmt.Println("open log file go_cms_reptile.log failed, err:", err)
+		return
+	}
+	//	设置 logger 输出日志文件
+	log.SetOutput(logFile)
+
+	log.SetFlags(log.Llongfile | log.Lmicroseconds | log.Ldate)
+
 }
 
 func GetCacheOne(key string) interface{} {
