@@ -1,16 +1,33 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/robfig/cron"
 	_ "go_cms_reptile/base" // 导入缓存使用
 	"go_cms_reptile/routers"
+	"go_cms_reptile/tools"
 	"io"
+	"log"
 	"os"
 )
 
 //启动获取资源数据
 func main() {
+	Conrs := cron.New() //创建一个cron实例
+
+	//执行定时任务（每1小时执行一次）
+	err := Conrs.AddFunc("0 0 0/1 * * ? ", tools.DDnsByNameSilo)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	//启动/
+	Conrs.Start()
+	defer Conrs.Stop()
+	log.Println("定时任务 Conrs 启动完成")
 	ginServer()
+
 }
 
 //开启 ginserver
@@ -38,4 +55,5 @@ func ginServer() {
 	if err != nil {
 		return
 	}
+
 }

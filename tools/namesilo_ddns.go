@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"errors"
-	"fmt"
 	"go_cms_reptile/models"
 	"gopkg.in/yaml.v2"
 	"io"
@@ -47,27 +46,51 @@ func init() {
 
 }
 
+// DDnsByNameSilo ddns 动态绑定 ip至dns
+func DDnsByNameSilo() {
+	//1、获取 dns 记录id
+	records, err := dnsListRecords()
+	if err != nil {
+		log.Panicln(err)
+	}
+	//2、 匹配 需要 动态绑定的host
+	rrId, err := matchDomainRecordId(records)
+	if err != nil {
+		log.Panicln(err)
+	}
+	// 3、获取当前地址IP
+	ip, err := myIp()
+	if err != nil {
+		log.Panicln(err)
+	}
+	//4、更新dns
+	err = updateDnsRecord(rrId, ip.IP)
+	if err != nil {
+		log.Panicln(err)
+	}
+}
+
 // MyIp 我的本地ip
-func MyIp() (*MyIpMOdel, error) {
+func myIp() (*MyIpMOdel, error) {
 	httpUrl := "https://api.myip.com/"
 	resp, err := http.Get(httpUrl)
 	if err != nil {
 		return nil, err
 	}
 
-	var myip *MyIpMOdel
+	var myIp *MyIpMOdel
 
 	// body 正确响应 json  格式 {"ip":"118.112.111.89","country":"China","cc":"CN"}
 	body, err := ioutil.ReadAll(resp.Body)
-	if err := json.Unmarshal(body, &myip); err != nil {
+	if err := json.Unmarshal(body, &myIp); err != nil {
 		return nil, err
 	}
 
-	return myip, nil
+	return myIp, nil
 }
 
 // DnsListRecords 获取 namesilo列出当前 DNS 记录
-func DnsListRecords() (*models.NameSiloRecordModel, error) {
+func dnsListRecords() (*models.NameSiloRecordModel, error) {
 
 	httpUrl := "https://www.namesilo.com/api/dnsListRecords"
 
@@ -105,11 +128,10 @@ func DnsListRecords() (*models.NameSiloRecordModel, error) {
 }
 
 // MatchDomain 匹配 地址  ddns 获取 rrid
-func MatchDomainRecordId(record *models.NameSiloRecordModel) (string, error) {
+func matchDomainRecordId(record *models.NameSiloRecordModel) (string, error) {
 	resourceRecord := record.Reply.ResourceRecord
 
-	for index, value := range resourceRecord {
-		fmt.Println(index, value)
+	for _, value := range resourceRecord {
 		// 匹配成功 ddns 需要的 域名 返回
 		if value.Host.Text == yamlConf.NameSiloConf.DDnsHost+"."+yamlConf.NameSiloConf.Domain {
 			return value.RecordID.Text, nil
@@ -127,7 +149,7 @@ func MatchDomainRecordId(record *models.NameSiloRecordModel) (string, error) {
 //&rrhost=test
 //&rrvalue=55.55.55.55
 //&rrttl=7207
-func UpdateDnsRecord(rrId, updateValue string) error {
+func updateDnsRecord(rrId, updateValue string) error {
 	httpUrl := "https://www.namesilo.com/api/dnsUpdateRecord?version=1&type=xml"
 
 	req, _ := http.NewRequest(http.MethodGet, httpUrl, nil)
